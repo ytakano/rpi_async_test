@@ -1,21 +1,24 @@
-use super::{msg::Msg, perror, EResult};
+#[allow(unused_imports)]
+use async_std::prelude::*;
+
+use super::{perror, EResult};
 use async_std::{
-    channel::{self, Receiver, Sender},
+    channel::{self, Receiver},
     task::{self, JoinHandle},
 };
 use signal_hook::consts::signal::*;
 use signal_hook_async_std::Signals;
-
-#[allow(unused_imports)]
-use async_std::prelude::*;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 
 const CHANNEL_SIZE: usize = 32;
 
-pub async fn run() -> EResult<(Sender<Msg>, Receiver<Msg>, JoinHandle<()>)> {
+pub async fn run(halt: Arc<AtomicBool>) -> EResult<(Receiver<()>, JoinHandle<()>)> {
     let mut signals = Signals::new(&[SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
     let (tx, rx) = channel::bounded(CHANNEL_SIZE);
 
-    let tx2 = tx.clone();
     let f = async move {
         while let Some(signal) = signals.next().await {
             match signal {
@@ -25,7 +28,8 @@ pub async fn run() -> EResult<(Sender<Msg>, Receiver<Msg>, JoinHandle<()>)> {
                 }
                 SIGTERM | SIGINT | SIGQUIT => {
                     // Shutdown the system;
-                    if let Err(e) = tx.send(Msg::Quit).await {
+                    halt.store(true, Ordering::Relaxed);
+                    if let Err(e) = tx.send(()).await {
                         perror!(e);
                     }
                     println!("");
@@ -37,5 +41,7 @@ pub async fn run() -> EResult<(Sender<Msg>, Receiver<Msg>, JoinHandle<()>)> {
         }
     };
 
-    Ok((tx2, rx, task::spawn(f)))
+    println!("initialized signal handler");
+
+    Ok((rx, task::spawn(f)))
 }
