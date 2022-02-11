@@ -6,9 +6,9 @@ mod spi;
 #[allow(unused_imports)]
 use async_std::prelude::*;
 
-pub type EResult<T> = Result<T, Box<dyn std::error::Error>>;
+use std::sync::{atomic::AtomicU64, Arc};
 
-use std::sync::{atomic::AtomicBool, Arc};
+pub type EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[macro_export]
 macro_rules! perror {
@@ -23,12 +23,13 @@ macro_rules! perror {
 
 #[async_std::main]
 async fn main() -> EResult<()> {
-    let halt = Arc::new(AtomicBool::new(false));
+    let temp = Arc::new(AtomicU64::new(0)); // 気温
+    let bright = Arc::new(AtomicU64::new(0)); // 明るさ
 
-    let (sig_rx, sig_hdl) = signal::run(halt.clone()).await?; // シグナルハンドラを起動
-    let led_hdl = gpio::run(halt).await?; // LEDタスクを起動
-    let spi_hdl = spi::run(sig_rx.clone()).await?; // SPIタスクを起動
-    let i2c_hdl = i2c::run(sig_rx).await?; // I2Cタスクを起動
+    let (sig_rx, sig_hdl) = signal::run().await?; // シグナルハンドラを起動
+    let led_hdl = gpio::run(sig_rx.clone()).await?; // LEDタスクを起動
+    let spi_hdl = spi::run(sig_rx.clone(), bright.clone()).await?; // SPIタスクを起動
+    let i2c_hdl = i2c::run(sig_rx, temp, bright).await?; // I2Cタスクを起動
 
     // graceful shutdown
     i2c_hdl.await; // I2Cタスクの終了を待機

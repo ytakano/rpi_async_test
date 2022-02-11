@@ -8,14 +8,10 @@ use async_std::{
 };
 use signal_hook::consts::signal::*;
 use signal_hook_async_std::Signals;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
 
 const CHANNEL_SIZE: usize = 32;
 
-pub async fn run(halt: Arc<AtomicBool>) -> EResult<(Receiver<()>, JoinHandle<()>)> {
+pub async fn run() -> EResult<(Receiver<()>, JoinHandle<()>)> {
     let mut signals = Signals::new(&[SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
     let (tx, rx) = channel::bounded(CHANNEL_SIZE);
 
@@ -28,11 +24,10 @@ pub async fn run(halt: Arc<AtomicBool>) -> EResult<(Receiver<()>, JoinHandle<()>
                 }
                 SIGTERM | SIGINT | SIGQUIT => {
                     // Shutdown the system;
-                    halt.store(true, Ordering::Relaxed);
                     if let Err(e) = tx.send(()).await {
                         perror!(e);
                     }
-                    println!("");
+                    println!();
                     println!("exiting signal handler ...");
                     return;
                 }
