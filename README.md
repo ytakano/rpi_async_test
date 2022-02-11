@@ -15,3 +15,5 @@ async_stdとrppalを用いています。
   - [MCP3208、ADコンバータ](./src/spi/mcp3208.rs)
 - シグナル
   - [シグナルハンドラ](./src/signal.rs)
+
+![Rpi4](./materials/rpi4.jpeg)
