@@ -34,25 +34,18 @@ bitflags! {
 pub(super) struct MCP3208 {
     sig_rx: Receiver<()>,
     bright: Arc<AtomicU64>,
-    min: u16,
-    max: u16,
 }
 
 impl MCP3208 {
     const CLOCK: u32 = 1000 * 1000; // 1 MHz
 
     pub(super) fn new(sig_rx: Receiver<()>, bright: Arc<AtomicU64>) -> Self {
-        MCP3208 {
-            sig_rx,
-            bright,
-            min: 500,
-            max: 3800,
-        }
+        MCP3208 { sig_rx, bright }
     }
 }
 
 impl Runner for MCP3208 {
-    fn run(mut self) -> EResult<JoinHandle<()>> {
+    fn run(self) -> EResult<JoinHandle<()>> {
         let s = Spi::new(Bus::Spi0, SlaveSelect::Ss0, Self::CLOCK, Mode::Mode0)?;
 
         let f = async move {
@@ -71,10 +64,7 @@ impl Runner for MCP3208 {
                 match s.transfer(&mut read_buf, &write_buf) {
                     Ok(_size) => {
                         let val = ((read_buf[1] & 0b00001111) as u16) << 8 | read_buf[0] as u16;
-                        self.min = if self.min > val { val } else { self.min };
-                        self.max = if self.max < val { val } else { self.max };
-
-                        let per = (val - self.min) as f64 / (self.max - self.min) as f64 * 100.0;
+                        let per = val as f64 / 4096.0 as f64 * 100.0;
                         self.bright.store(per.to_bits(), Ordering::Relaxed); // 共有変数に保存
                         println!("MCP3208(0): {:.2} %", per);
                     }

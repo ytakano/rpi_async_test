@@ -13,5 +13,17 @@ async_stdとrppalを用いています。
   - [ST7032、ディスプレイ](./src/i2c/st7032.rs)
 - SPI
   - [MCP3208、ADコンバータ](./src/spi/mcp3208.rs)
-- シグナル
-  - [シグナルハンドラ](./src/signal.rs)
+- [シグナル](./src/signal.rs)
+
+## データベース
+
+Dieselを利用して、PostgreSQLに保存します。
+環境変数`DATABASE_URL`に適切な値を設定すると保存できます。
+
+Deiselはasync/awaitで使うのが難しかったので、DB系は別スレッドで動作します。
+
+```sh
+$ export DATABASE_URL=postgres://user:pass@localhost/rpi_async
+$ diesel migration run
+$ ./target/release/rpi_async
+```
