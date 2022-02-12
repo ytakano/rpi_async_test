@@ -13,6 +13,7 @@ async_stdとrppalを用いています。
   - [ST7032、ディスプレイ](./src/i2c/st7032.rs)
 - SPI
   - [MCP3208、ADコンバータ](./src/spi/mcp3208.rs)
+<<<<<<< HEAD
 - [シグナル](./src/signal.rs)
 
 ## データベース
@@ -27,3 +28,9 @@ $ export DATABASE_URL=postgres://user:pass@localhost/rpi_async
 $ diesel migration run
 $ ./target/release/rpi_async
 ```
+=======
+- シグナル
+  - [シグナルハンドラ](./src/signal.rs)
+
+![Rpi4](./materials/rpi4.jpeg)
+>>>>>>> b0f8fad42bc82ab11401ba2a5e503e1b8ad136f4
