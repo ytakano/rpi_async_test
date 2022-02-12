@@ -3,14 +3,15 @@ use async_std::prelude::*;
 
 use super::EResult;
 use async_std::{
-    channel::Receiver,
+    channel::{Receiver, Sender},
     sync::Mutex,
     task::{self, JoinHandle},
 };
-use rppal::i2c::I2c;
+use rppal::{gpio::OutputPin, i2c::I2c};
 use std::sync::{atomic::AtomicU64, Arc};
 
 mod adt7410;
+mod ccs811;
 mod st7032;
 
 trait Runner {
@@ -19,6 +20,7 @@ trait Runner {
 
 pub async fn run(
     sig_rx: Receiver<()>,
+    ccs811_pin: OutputPin,
     temp: Arc<AtomicU64>,
     bright: Arc<AtomicU64>,
 ) -> EResult<JoinHandle<()>> {
@@ -32,11 +34,15 @@ pub async fn run(
     let task_display = display.run(bus.clone())?;
 
     // 温度センサ
-    let task_adt7410 = adt7410::ADT7410::new(sig_rx, temp).run(bus)?;
+    let task_adt7410 = adt7410::ADT7410::new(sig_rx.clone(), temp).run(bus.clone())?;
+
+    // 環境センサ
+    let task_ccs811 = ccs811::CCS811::new(sig_rx, ccs811_pin).run(bus)?;
 
     let hdl = task::spawn(async move {
         task_adt7410.await;
         task_display.await;
+        task_ccs811.await;
     });
 
     Ok(hdl)

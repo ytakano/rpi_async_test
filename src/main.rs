@@ -11,6 +11,7 @@ mod spi;
 #[allow(unused_imports)]
 use async_std::prelude::*;
 
+use async_std::channel;
 use std::sync::{atomic::AtomicU64, Arc};
 
 pub type EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -32,9 +33,9 @@ async fn main() -> EResult<()> {
     let bright = Arc::new(AtomicU64::new(0)); // 明るさ
 
     let (sig_rx, sig_hdl) = signal::run().await?; // シグナルハンドラを起動
-    let led_hdl = gpio::run(sig_rx.clone()).await?; // LEDタスクを起動
+    let (led_hdl, ccs811_pin) = gpio::run(sig_rx.clone()).await?; // LEDタスクを起動
     let spi_hdl = spi::run(sig_rx.clone(), bright.clone()).await?; // SPIタスクを起動
-    let i2c_hdl = i2c::run(sig_rx, temp.clone(), bright.clone()).await?; // I2Cタスクを起動
+    let i2c_hdl = i2c::run(sig_rx, ccs811_pin, temp.clone(), bright.clone()).await?; // I2Cタスクを起動
     let _ = db::run(temp, bright);
 
     // graceful shutdown

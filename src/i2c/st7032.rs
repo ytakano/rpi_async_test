@@ -155,7 +155,10 @@ impl Runner for ST7032<Initialized> {
                 }
 
                 let temp = format!("{:.2} C", f64::from_bits(self.temp.load(Ordering::Relaxed)));
-                let bright = format!("{:.2} %", f64::from_bits(self.bright.load(Ordering::Relaxed)));
+                let bright = format!(
+                    "{:.2} %",
+                    f64::from_bits(self.bright.load(Ordering::Relaxed))
+                );
 
                 if let Err(e) = self.print(&temp, Some(&bright), &bus).await {
                     perror!(e);

@@ -21,8 +21,8 @@ use std::{
 bitflags! {
     struct MCP3208_0: u8 {
         const START = 0b00000100; // start bit
-        const SGL = 0b00000010; // SGL (絶対値)
-        const D2 =  0b00000001; // チャネル選択 (2ビット目)
+        const SGL   = 0b00000010; // SGL (絶対値)
+        const D2    = 0b00000001; // チャネル選択 (2ビット目)
     }
 
     struct MCP3208_1: u8 {
