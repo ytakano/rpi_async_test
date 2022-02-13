@@ -1,7 +1,9 @@
-# Raspi4 in Rust
+# Raspberry Pi 4 in Rust
 
-Raspi4をRustのasync/awaitの非同期プログラミングで操作するテストコードです。
+Raspberry Pi 4をRustのasync/awaitの非同期プログラミングで操作するテストコードです。
 async_stdとrppalを用いています。
+
+![Raspberry Pi 4](./materials/rpi4.jpeg)
 
 シグナルを受け取ると、Graceful shutdownします。
 
@@ -27,4 +29,115 @@ Deiselはasync/awaitで使うのが難しかったので、DB系は別スレッ�
 $ export DATABASE_URL=postgres://user:pass@localhost/rpi_async
 $ diesel setup
 $ ./target/release/rpi_async
+```
+
+DBに保存したデータは以下のようにGrafana等で可視化できます。
+
+![Grafana](./materials/grafana.png)
+
+## 参考資料
+
+CCS811以外の使い方は、以下の書籍に載っています。実装はPythonですが、とても良い本です。
+
+<iframe style="width:120px;height:240px;" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" src="//rcm-fe.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=coredumped03-22&language=ja_JP&o=9&p=8&l=as4&m=amazon&f=ifr&ref=as_ss_li_til&asins=4065193397&linkId=90d1e3d880fab56b4d1061d66bb6597d"></iframe>
+
+## 配線
+
+ピン配置
+
+```
+   3V3  (1) (2)  5V
+ GPIO2  (3) (4)  5V
+ GPIO3  (5) (6)  GND
+ GPIO4  (7) (8)  GPIO14
+   GND  (9) (10) GPIO15
+GPIO17 (11) (12) GPIO18
+GPIO27 (13) (14) GND
+GPIO22 (15) (16) GPIO23
+   3V3 (17) (18) GPIO24
+GPIO10 (19) (20) GND
+ GPIO9 (21) (22) GPIO25
+GPIO11 (23) (24) GPIO8
+   GND (25) (26) GPIO7
+ GPIO0 (27) (28) GPIO1
+ GPIO5 (29) (30) GND
+ GPIO6 (31) (32) GPIO12
+GPIO13 (33) (34) GND
+GPIO19 (35) (36) GPIO16
+GPIO26 (37) (38) GPIO20
+   GND (39) (40) GPIO21
+```
+
+- GPIO11 (23)はSPI SCLK
+- GPIO09 (21)はSPI MISO
+- GPIO10 (10)はSPI MOSI
+- GPIO08 (24)はSPI CEO
+- GPIO02 (3)はI2C SDA
+- GPIO03 (5)はI2C SCL
+
+### MCP3208 (SPI)
+
+```
+CH0 Vdd     -> 3V3
+CH1 Vref    -> 3V3
+CH2 AGND    -> GND
+CH3 CLK     -> GPIO11 (23), SPI SCLK
+CH4 Dout    -> GPIO01 (21), SPI MISO
+CH5 Din     -> GPIO10 (19), SPI MOSI
+CH6 CS/SHDN -> GPIO08 (24), SPI CEO
+CH7 DGND    -> GND
+```
+
+フォトレジスタの接続例は以下。
+
+```
+3V3 - CdS Cell - 10 KΩ抵抗 - GND
+               |
+              CH0
+```
+
+### ADT7410, ST7032 (I2C)
+
+```
+Vdd -> 3V3
+SCL -> GPIO03 (5), I2C SCL
+SDA -> GPIO02 (3), I2C SDA
+GND -> GND
+```
+
+### CSS811 (I2C)
+
+```
+Vdd -> 3V3
+SCL -> GPIO03 (5), I2C SCL
+SDA -> GPIO02 (3), I2C SDA
+GND -> GND
+WAK -> (40) GPIO21
+RST -> 3V3
+ADD -> GND
+```
+
+GPIO21は他のGPIOピンでも問題なし。
+
+ADDはGNDか3V3かによって、I2Cのアドレスが以下のように変化する。
+
+- ADD
+  - GND -> 0x5a
+  - 3V3 -> 0x5b
+
+### GPIO
+
+GPIOの入力と出力のテスト。
+入力のタクトスイッチを押すと、LEDが点灯。
+
+#### 出力
+
+```
+GPIO06 (31) - LED - 330 Ω抵抗 - GND
+```
+
+#### 入力
+
+```
+3V3 - タクトスイッチ - GPIO05 (29)
 ```
