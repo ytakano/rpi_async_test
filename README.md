@@ -25,6 +25,6 @@ Deiselはasync/awaitで使うのが難しかったので、DB系は別スレッ�
 
 ```sh
 $ export DATABASE_URL=postgres://user:pass@localhost/rpi_async
-$ diesel migration run
+$ diesel setup
 $ ./target/release/rpi_async
 ```
