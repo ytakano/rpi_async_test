@@ -39,7 +39,7 @@ DBに保存したデータは以下のようにGrafana等で可視化できま�
 
 CCS811以外の使い方は、以下の書籍に載っています。実装はPythonですが、とても良い本です。
 
-<iframe style="width:120px;height:240px;" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" src="//rcm-fe.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=coredumped03-22&language=ja_JP&o=9&p=8&l=as4&m=amazon&f=ifr&ref=as_ss_li_til&asins=4065193397&linkId=90d1e3d880fab56b4d1061d66bb6597d"></iframe>
+[Raspberry Piで学ぶ電子工作](https://amzn.to/3p7agcn)
 
 ## 配線
 
