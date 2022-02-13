@@ -11,6 +11,7 @@ async_stdとrppalを用いています。
 - I2C
   - [ADT7410、温度センサ](./src/i2c/adt7410.rs)
   - [ST7032、ディスプレイ](./src/i2c/st7032.rs)
+  - [CCS811、二酸化炭素・総揮発性有機化合物](./src/i2c/ccs811.rs)
 - SPI
   - [MCP3208、ADコンバータ](./src/spi/mcp3208.rs)
 - [シグナル](./src/signal.rs)
